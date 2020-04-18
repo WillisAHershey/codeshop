@@ -7,6 +7,7 @@
 
 #include "fileReps.h"
 
-int resolveFailedToOpen(EFILEList*,char*);
+int resolveFailedToOpenForRead(EFILEList*,char*);
+int resolveFailedToOpenForWrite(EFILEList*,EFILE*);
 
 #endif

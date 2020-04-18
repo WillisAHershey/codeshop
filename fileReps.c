@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fileReps.h"
+#include "userInterface.h"
 #include "codeshopDefs.h"
 
 EFILE* makeEFILE(FILE *file,char *filename){
   EFILE *out=malloc(sizeof(EFILE)+strlen(filename)+sizeof(char));
-  *out=(EFILE){.next=NULL,.head=NULL,.tail=NULL};
+  *out=(EFILE){.next=NULL,.prev=NULL,.fd=file,.head=NULL,.tail=NULL};
   strcpy(out->name,filename);
   int len, overflow;
   lineNode *pt;
@@ -18,7 +19,6 @@ EFILE* makeEFILE(FILE *file,char *filename){
 	if(len==LINE_BUF_LEN-1&&buf[LINE_BUF_LEN-2]!='\n'){
 		overflow=1;
 		while(fgets(buf,LINE_BUF_LEN,file)){
-			printf("Had to loop\n");
 			pt=realloc(pt,sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+overflow*(LINE_BUF_LEN-1)+1);
 			strcpy(pt->line+(LINE_BUF_LEN-1)*overflow,buf);
 			if(len<LINE_BUF_LEN-1||buf[LINE_BUF_LEN-2]=='\n'){
@@ -38,11 +38,42 @@ EFILE* makeEFILE(FILE *file,char *filename){
 	else
 		out->head=out->tail=pt;
   }
-  fclose(file);
   return out;
 }
 
-void freeLineNodes(EFILE *efile){
+void removeEFILEListAndFree(EFILEList *efilelist,EFILE *efile){
+  if(efile==efilelist->head){
+	if(efile==efilelist->tail)
+		efilelist->head=efilelist->tail=NULL;
+	else{
+		efilelist->head=efile->next;
+		efile->next->prev=NULL;
+	}
+  }
+  else if(efile==efilelist->tail){
+	efilelist->tail=efile->prev;
+	efile->prev->next=NULL;
+  }
+  else{
+	efile->prev->next=efile->next;
+	efile->next->prev=efile->prev;
+  }
+  freeEFILE(efile);
+}
+
+EFILE* makeEmptyEFILE(char *filename){
+  size_t len=filename?strlen(filename)+1:1;
+  EFILE *out=malloc(sizeof(EFILE)+len);
+  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL};
+  if(filename)
+	strcpy(out->name,filename);
+  else
+	out->name[0]='\0';
+  return out;
+}
+
+void freeEFILE(EFILE *efile){
+  fclose(efile->fd);
   lineNode *pt=efile->head;
   lineNode *run;
   while(pt){
@@ -50,16 +81,16 @@ void freeLineNodes(EFILE *efile){
 	pt=pt->next;
 	free(run);
   }
+  free(efile);
 }
 
 void freeEFILEList(EFILEList *list){
   EFILE *efile=list->head;
   EFILE *run;
   while(efile){
-	freeLineNodes(efile);
 	run=efile;
 	efile=efile->next;
-	free(run);
+	freeEFILE(run);
   }
 }
 
@@ -68,4 +99,29 @@ void printEFILE(EFILE *efile){
   lineNode *pt;
   for(pt=efile->head;pt;pt=pt->next)
 	printf("%s\n",pt->line);
+}
+
+//efile must have a valid FILE* before this function is called
+void writeEFILE(EFILE *efile){
+  fseek(efile->fd,0,SEEK_SET);
+  lineNode *pt=efile->head;
+  while(pt){
+	fprintf(efile->fd,"%s\n",pt->line);
+	pt=pt->next;
+  }
+}
+
+//efile must have a valid FILE* before this function is called
+void writeAndFreeEFILE(EFILE *efile){
+  fseek(efile->fd,0,SEEK_SET);
+  lineNode *pt=efile->head;
+  lineNode *run;
+  while(pt){
+	run=pt;
+	fprintf(efile->fd,"%s\n",pt->line);
+	pt=pt->next;
+	free(run);
+  }
+  fclose(efile->fd);
+  free(efile);
 }

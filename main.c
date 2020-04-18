@@ -42,7 +42,7 @@ int main(int args,char *argv[]){
 			userFiles.head=userFiles.tail=efile;
 	}
 	else
-		resolveFailedToOpen(&userFiles,argv[c]);
+		resolveFailedToOpenForRead(&userFiles,argv[c]);
   }
   printEFILE(userFiles.head);
   freeEFILEList(&userFiles);

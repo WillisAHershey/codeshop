@@ -17,6 +17,8 @@ typedef struct lineNodeStruct{
 //they also link together nicely to form a linked list of files being edited
 typedef struct EFILEStruct{
   struct EFILEStruct *next;
+  struct EFILEStruct *prev;
+  FILE *fd;
   lineNode *head;
   lineNode *tail;
   char name[0];
@@ -28,7 +30,9 @@ typedef struct{
 }EFILEList;
 
 EFILE* makeEFILE(FILE*,char*);
-void freeLineNodes(EFILE*);
+EFILE* makeEmptyEFILE(char*);
+void freeEFILE(EFILE*);
+void removeEFILEListAndFree(EFILEList*,EFILE*);
 void freeEFILEList(EFILEList*);
 void printEFILE(EFILE*);
 
