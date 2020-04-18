@@ -31,11 +31,12 @@ int main(int args,char *argv[]){
   EFILE *efile;
   int c;
   for(c=1;c<args;++c){
-	fp=fopen(argv[c],"r");
+	fp=fopen(argv[c],"r+");
 	if(fp){
 		efile=makeEFILE(fp,argv[c]);
 		if(userFiles.head){
 			userFiles.tail->next=efile;
+			efile->prev=userFiles.tail;
 			userFiles.tail=efile;
 		}
 		else
@@ -45,5 +46,9 @@ int main(int args,char *argv[]){
 		resolveFailedToOpenForRead(&userFiles,argv[c]);
   }
   printEFILE(userFiles.head);
+  EFILEAppendLine(userFiles.head,"This is a new line");
+  printEFILE(userFiles.head);
+  writeEFILE(userFiles.head);
+  //after mischief is managed
   freeEFILEList(&userFiles);
 }

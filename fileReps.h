@@ -21,6 +21,7 @@ typedef struct EFILEStruct{
   FILE *fd;
   lineNode *head;
   lineNode *tail;
+  int numLines;
   char name[0];
 }EFILE;
 
@@ -32,6 +33,9 @@ typedef struct{
 EFILE* makeEFILE(FILE*,char*);
 EFILE* makeEmptyEFILE(char*);
 void freeEFILE(EFILE*);
+int EFILEAppendLine(EFILE*,char*);
+void writeEFILE(EFILE*);
+void writeAndFreeEFILE(EFILE*);
 void removeEFILEListAndFree(EFILEList*,EFILE*);
 void freeEFILEList(EFILEList*);
 void printEFILE(EFILE*);

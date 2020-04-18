@@ -12,6 +12,7 @@ EFILE* makeEFILE(FILE *file,char *filename){
   int len, overflow;
   lineNode *pt;
   char buf[LINE_BUF_LEN];
+  int numLines=0;
   while(fgets(buf,LINE_BUF_LEN,file)){
 	pt=malloc(sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+sizeof(char));
 	*pt=(lineNode){.next=NULL,.prev=out->tail};
@@ -37,7 +38,9 @@ EFILE* makeEFILE(FILE *file,char *filename){
 	}
 	else
 		out->head=out->tail=pt;
+	++numLines;
   }
+  out->numLines=numLines;
   return out;
 }
 
@@ -64,12 +67,30 @@ void removeEFILEListAndFree(EFILEList *efilelist,EFILE *efile){
 EFILE* makeEmptyEFILE(char *filename){
   size_t len=filename?strlen(filename)+1:1;
   EFILE *out=malloc(sizeof(EFILE)+len);
-  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL};
+  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL,.numLines=0};
   if(filename)
 	strcpy(out->name,filename);
   else
 	out->name[0]='\0';
   return out;
+}
+
+int EFILEAppendLine(EFILE *efile,char *line){
+  lineNode *pt=malloc(sizeof(lineNode)+strlen(line)+1);
+  pt->next=NULL;
+  strcpy(pt->line,line);
+  if(!efile->tail){
+	efile->head=efile->tail=pt;
+	pt->prev=NULL;
+	efile->numLines=1;
+  }
+  else{
+	efile->tail->next=pt;
+	pt->prev=efile->tail;
+	efile->tail=pt;
+	++efile->numLines;
+  }
+  return SUCCESS;
 }
 
 void freeEFILE(EFILE *efile){
@@ -95,7 +116,7 @@ void freeEFILEList(EFILEList *list){
 }
 
 void printEFILE(EFILE *efile){
-  printf("%s\n",efile->name);
+  printf("%s\nContaints %d lines\n",efile->name,efile->numLines);
   lineNode *pt;
   for(pt=efile->head;pt;pt=pt->next)
 	printf("%s\n",pt->line);
