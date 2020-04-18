@@ -11,7 +11,7 @@ Be compilable and runable on Windows, Linux, and Apple devices.
 When a user-level file is opened it should:
 
 Be opened in such a way that it can be safely edited without harming the original until the user decides to write changes into the file
-Be opened in a portable (non-implementation specific) way (fopen(), not open())
+Be opened in a portable (non-implementation specific) way
 
 
 
