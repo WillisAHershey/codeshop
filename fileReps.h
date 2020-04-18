@@ -5,7 +5,7 @@
 #ifndef __FILEREPS_
 #define __FILEREPS_
 
-#define LINE_BUF_LEN 256
+#define LINE_BUF_LEN 257
 
 typedef struct lineNodeStruct{
   struct lineNodeStruct *next;
@@ -28,6 +28,8 @@ typedef struct{
 }EFILEList;
 
 EFILE* makeEFILE(FILE*,char*);
+void freeLineNodes(EFILE*);
+void freeEFILEList(EFILEList*);
 void printEFILE(EFILE*);
 
 #endif

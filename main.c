@@ -7,7 +7,7 @@
 
 #include <stdio.h>  //FILE fopen fseek fclose
 #include <stdlib.h> //malloc realloc free size_t
-#include <string.h> //strlen
+#include <string.h> //strlen strcpy
 
 #include "codeshopDefs.h"
 
@@ -23,15 +23,15 @@
 
 int main(int args,char *argv[]){
   //I do not anticipate being passed more than one filename but at the moment I do not want to make this an error so I'll just open all non-first arguments
-  //For the time being I am going to assume that the mode this program was run in will give me write access to filename if it exists
-  
+  //For the time being I am going to assume that the mode this program was run in will give me read access to filename if it exists
+ 
   //userFiles will be a continuously updated linked list of open EFILES
   EFILEList userFiles=(EFILEList){.head=NULL,.tail=NULL};
   FILE *fp;
   EFILE *efile;
   int c;
   for(c=1;c<args;++c){
-	fp=fopen(argv[c],"r+");
+	fp=fopen(argv[c],"r");
 	if(fp){
 		efile=makeEFILE(fp,argv[c]);
 		if(userFiles.head){
@@ -44,4 +44,6 @@ int main(int args,char *argv[]){
 	else
 		resolveFailedToOpen(&userFiles,argv[c]);
   }
+  printEFILE(userFiles.head);
+  freeEFILEList(&userFiles);
 }

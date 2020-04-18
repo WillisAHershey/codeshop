@@ -2,6 +2,8 @@
 //Last edited April 17th 2020
 
 #include <stdio.h>
+#include <stdarg.h>
+
 #include "userInterface.h"
 #include "fileReps.h"
 #include "codeshopDefs.h"

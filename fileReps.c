@@ -21,12 +21,16 @@ EFILE* makeEFILE(FILE *file,char *filename){
 			printf("Had to loop\n");
 			pt=realloc(pt,sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+overflow*(LINE_BUF_LEN-1)+1);
 			strcpy(pt->line+(LINE_BUF_LEN-1)*overflow,buf);
-			if(len<LINE_BUF_LEN-1||buf[LINE_BUF_LEN-2]=='\n')
+			if(len<LINE_BUF_LEN-1||buf[LINE_BUF_LEN-2]=='\n'){
+				pt->line[(LINE_BUF_LEN-1)*overflow+len-1]='\0';
 				break;
+			}
 			else
 				++overflow;
 		}
 	}
+	else
+		pt->line[len-1]='\0';
 	if(out->head){
 		out->tail->next=pt;
 		out->tail=pt;
@@ -38,9 +42,30 @@ EFILE* makeEFILE(FILE *file,char *filename){
   return out;
 }
 
+void freeLineNodes(EFILE *efile){
+  lineNode *pt=efile->head;
+  lineNode *run;
+  while(pt){
+	run=pt;
+	pt=pt->next;
+	free(run);
+  }
+}
+
+void freeEFILEList(EFILEList *list){
+  EFILE *efile=list->head;
+  EFILE *run;
+  while(efile){
+	freeLineNodes(efile);
+	run=efile;
+	efile=efile->next;
+	free(run);
+  }
+}
+
 void printEFILE(EFILE *efile){
   printf("%s\n",efile->name);
   lineNode *pt;
   for(pt=efile->head;pt;pt=pt->next)
-	printf("%s",pt->line);
+	printf("%s\n",pt->line);
 }
