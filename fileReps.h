@@ -13,18 +13,17 @@ typedef struct lineNodeStruct{
   char line[0];
 }lineNode;
 
-enum editType{DELETION,INSERTION};
+enum editType{DELETION,INSERTION,LINEEDIT};
 
 //EFILEs are abstract file representations containing linked lists of lines so that editing can take place without enourmous processing overhead
 //they also link together nicely to form a linked list of files being edited
 
 //this is a temporary hush-error
-#define editLog void*
+#define editLog void
 
 typedef struct EFILEStruct{
   struct EFILEStruct *next;
   struct EFILEStruct *prev;
-  FILE *fd;
   lineNode *head;
   lineNode *tail;
   editLog *edits;
@@ -40,8 +39,8 @@ typedef struct{
 EFILE* makeEFILE(FILE*,char*);
 EFILE* makeEmptyEFILE(char*);
 void freeEFILE(EFILE*);
-void writeEFILE(EFILE*);
-void writeAndFreeEFILE(EFILE*);
+int writeEFILE(EFILE*);
+int writeAndFreeEFILE(EFILE*);
 void freeEFILEList(EFILEList*);
 void removeEFILEListAndFree(EFILEList*,EFILE*);
 void printEFILE(EFILE*);

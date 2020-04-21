@@ -1,12 +1,13 @@
 //Willis A. Hershey
 //Last edited April 17th 2020
-
-#include <stdio.h>
-#include <stdarg.h>
-
 #include "userInterface.h"
 #include "fileReps.h"
 #include "codeshopDefs.h"
+
+int openEditWindow(EFILE *efile){
+  //stuff here
+  return FAILURE;
+}
 
 int resolveFailedToOpenForRead(EFILEList *filelist,char *filename){
   //This function is called when the program tries and fails to open a file that is supposed to already exist

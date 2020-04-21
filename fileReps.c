@@ -20,7 +20,7 @@ void logEdit(EFILE *efile,enum editType edit,int spot,int numLines,void *a){
 
 EFILE* makeEFILE(FILE *file,char *filename){
   EFILE *out=malloc(sizeof(EFILE)+strlen(filename)+sizeof(char));
-  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL,.edits=NULL};
+  *out=(EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.edits=NULL};
   strcpy(out->name,filename);
   int len, overflow;
   lineNode *pt;
@@ -61,7 +61,7 @@ EFILE* makeEFILE(FILE *file,char *filename){
 EFILE* makeEmptyEFILE(char *filename){
   size_t len=filename?strlen(filename)+1:1;
   EFILE *out=malloc(sizeof(EFILE)+len);
-  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL,.edits=NULL,.numLines=0};
+  *out=(EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.edits=NULL,.numLines=0};
   if(filename)
 	strcpy(out->name,filename);
   else
@@ -70,7 +70,6 @@ EFILE* makeEmptyEFILE(char *filename){
 }
 
 void freeEFILE(EFILE *efile){
-  fclose(efile->fd);
   lineNode *pt=efile->head;
   lineNode *run;
   while(pt){
@@ -78,35 +77,28 @@ void freeEFILE(EFILE *efile){
 	pt=pt->next;
 	free(run);
   }
+  //free edits
   free(efile);
 }
 
-void writeEFILE(EFILE *efile){
-  if(!(efile->fd=fopen(efile->name,"w")))
-	if(!resolveFailureToOpenForWrite(efile))
-		return;
+int writeEFILE(EFILE *efile){
+  FILE *fd;
+  if(!(fd=fopen(efile->name,"w")))
+	return FAILURE;
   lineNode *pt=efile->head;
   while(pt){
-	fprintf(efile->fd,"%s\n",pt->line);
+	fprintf(fd,"%s\n",pt->line);
 	pt=pt->next;
   }
-  fclose(efile->fd);
+  fclose(fd);
+  return SUCCESS;
 }
 
-void writeAndFreeEFILE(EFILE *efile){
-  if(!(efile->fd=fopen(efile->name,"w")))
-	if(!resolveFailureToOpenForWrite(efile))
-		return;
-  lineNode *pt=efile->head;
-  lineNode *run;
-  while(pt){
-	run=pt;
-	fprintf(efile->fd,"%s\n",pt->line);
-	pt=pt->next;
-	free(run);
-  }
-  fclose(efile->fd);
-  free(efile);
+int writeAndFreeEFILE(EFILE *efile){
+  if(!writeEFILE(efile))
+	return FAILURE;
+  freeEFILE(efile);
+  return SUCCESS;
 }
 
 void freeEFILEList(EFILEList *list){

@@ -46,9 +46,7 @@ int main(int args,char *argv[]){
 		resolveFailedToOpenForRead(&userFiles,argv[c]);
   }
   printEFILE(userFiles.head);
-  while(EFILEDeleteLine(userFiles.head,12)){
-  	printEFILE(userFiles.head);
-  }
+  openEditWindow(userFiles.head);
   //after mischief is managed
   freeEFILEList(&userFiles);
 }
