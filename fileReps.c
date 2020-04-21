@@ -5,9 +5,22 @@
 #include "userInterface.h"
 #include "codeshopDefs.h"
 
+union flexPointer{
+  lineNode *line;
+  char *text;
+};
+
+//Not available in .h file, so not linkable.
+void logEdit(EFILE *efile,enum editType edit,int spot,int numLines,void *a){
+  union flexPointer pt;
+  pt.line=a;
+  if(edit==DELETION)
+	  free(pt.line);
+}
+
 EFILE* makeEFILE(FILE *file,char *filename){
   EFILE *out=malloc(sizeof(EFILE)+strlen(filename)+sizeof(char));
-  *out=(EFILE){.next=NULL,.prev=NULL,.fd=file,.head=NULL,.tail=NULL};
+  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL,.edits=NULL};
   strcpy(out->name,filename);
   int len, overflow;
   lineNode *pt;
@@ -41,7 +54,69 @@ EFILE* makeEFILE(FILE *file,char *filename){
 	++numLines;
   }
   out->numLines=numLines;
+  fclose(file);
   return out;
+}
+
+EFILE* makeEmptyEFILE(char *filename){
+  size_t len=filename?strlen(filename)+1:1;
+  EFILE *out=malloc(sizeof(EFILE)+len);
+  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL,.edits=NULL,.numLines=0};
+  if(filename)
+	strcpy(out->name,filename);
+  else
+	out->name[0]='\0';
+  return out;
+}
+
+void freeEFILE(EFILE *efile){
+  fclose(efile->fd);
+  lineNode *pt=efile->head;
+  lineNode *run;
+  while(pt){
+	run=pt;
+	pt=pt->next;
+	free(run);
+  }
+  free(efile);
+}
+
+void writeEFILE(EFILE *efile){
+  if(!(efile->fd=fopen(efile->name,"w")))
+	if(!resolveFailureToOpenForWrite(efile))
+		return;
+  lineNode *pt=efile->head;
+  while(pt){
+	fprintf(efile->fd,"%s\n",pt->line);
+	pt=pt->next;
+  }
+  fclose(efile->fd);
+}
+
+void writeAndFreeEFILE(EFILE *efile){
+  if(!(efile->fd=fopen(efile->name,"w")))
+	if(!resolveFailureToOpenForWrite(efile))
+		return;
+  lineNode *pt=efile->head;
+  lineNode *run;
+  while(pt){
+	run=pt;
+	fprintf(efile->fd,"%s\n",pt->line);
+	pt=pt->next;
+	free(run);
+  }
+  fclose(efile->fd);
+  free(efile);
+}
+
+void freeEFILEList(EFILEList *list){
+  EFILE *efile=list->head;
+  EFILE *run;
+  while(efile){
+	run=efile;
+	efile=efile->next;
+	freeEFILE(run);
+  }
 }
 
 void removeEFILEListAndFree(EFILEList *efilelist,EFILE *efile){
@@ -64,15 +139,11 @@ void removeEFILEListAndFree(EFILEList *efilelist,EFILE *efile){
   freeEFILE(efile);
 }
 
-EFILE* makeEmptyEFILE(char *filename){
-  size_t len=filename?strlen(filename)+1:1;
-  EFILE *out=malloc(sizeof(EFILE)+len);
-  *out=(EFILE){.next=NULL,.prev=NULL,.fd=NULL,.head=NULL,.tail=NULL,.numLines=0};
-  if(filename)
-	strcpy(out->name,filename);
-  else
-	out->name[0]='\0';
-  return out;
+void printEFILE(EFILE *efile){
+  printf("%s\nContaints %d lines\n",efile->name,efile->numLines);
+  lineNode *pt;
+  for(pt=efile->head;pt;pt=pt->next)
+	printf("%s\n",pt->line);
 }
 
 int EFILEAppendLine(EFILE *efile,char *line){
@@ -90,59 +161,50 @@ int EFILEAppendLine(EFILE *efile,char *line){
 	efile->tail=pt;
 	++efile->numLines;
   }
+
+  logEdit(efile,INSERTION,AT_END,1,line);
   return SUCCESS;
 }
 
-void freeEFILE(EFILE *efile){
-  fclose(efile->fd);
-  lineNode *pt=efile->head;
-  lineNode *run;
-  while(pt){
-	run=pt;
-	pt=pt->next;
-	free(run);
+int EFILEDeleteLine(EFILE *efile,int lineNum){
+  register int numLines=efile->numLines;
+  register lineNode *pt;
+  if(lineNum<1||lineNum>numLines)
+	return FAILURE;
+  if(lineNum==1){
+	pt=efile->head;
+	if(numLines==1)
+		efile->head=efile->tail=NULL;
+	else{
+		efile->head=pt->next;
+		pt->next->prev=NULL;
+	}
   }
-  free(efile);
+  else{
+	if(lineNum==numLines){
+		pt=efile->tail;
+		efile->tail=pt->prev;
+		efile->tail->next=NULL;
+	}
+	else{
+		int c;
+		if(lineNum<=numLines/2){
+			pt=efile->head;
+			for(c=1;c<lineNum;++c)
+				pt=pt->next;
+		}
+		else{
+			pt=efile->tail;
+			for(c=numLines;c>lineNum;--c)
+				pt=pt->prev;
+		}
+		pt->prev->next=pt->next;
+		pt->next->prev=pt->prev;
+	}
+  }
+  //at this point pt is pointing to line being deleted, and it is disconnected from list in EFILE
+  logEdit(efile,DELETION,lineNum,1,pt);
+  --efile->numLines;
+  return SUCCESS;
 }
 
-void freeEFILEList(EFILEList *list){
-  EFILE *efile=list->head;
-  EFILE *run;
-  while(efile){
-	run=efile;
-	efile=efile->next;
-	freeEFILE(run);
-  }
-}
-
-void printEFILE(EFILE *efile){
-  printf("%s\nContaints %d lines\n",efile->name,efile->numLines);
-  lineNode *pt;
-  for(pt=efile->head;pt;pt=pt->next)
-	printf("%s\n",pt->line);
-}
-
-//efile must have a valid FILE* before this function is called
-void writeEFILE(EFILE *efile){
-  fseek(efile->fd,0,SEEK_SET);
-  lineNode *pt=efile->head;
-  while(pt){
-	fprintf(efile->fd,"%s\n",pt->line);
-	pt=pt->next;
-  }
-}
-
-//efile must have a valid FILE* before this function is called
-void writeAndFreeEFILE(EFILE *efile){
-  fseek(efile->fd,0,SEEK_SET);
-  lineNode *pt=efile->head;
-  lineNode *run;
-  while(pt){
-	run=pt;
-	fprintf(efile->fd,"%s\n",pt->line);
-	pt=pt->next;
-	free(run);
-  }
-  fclose(efile->fd);
-  free(efile);
-}
