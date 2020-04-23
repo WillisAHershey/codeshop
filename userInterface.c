@@ -6,11 +6,11 @@
 
 const char windowClassName[] = "Codeshop coding environment";
 
-#ifdef _WIN_32
+#ifdef WINDOWS
 //Windows specific code here
 LPARAM CALLBACK WndProc(HWND windowHandle,unsigned message,WPARAM wparam,LPARAM lparam){
   printf("%u\n",message);
-  DefWindowProc(windowHandle,message,wparam,lparam);
+  return DefWindowProc(windowHandle,message,wparam,lparam);
 }
 
 #else
@@ -20,7 +20,7 @@ LPARAM CALLBACK WndProc(HWND windowHandle,unsigned message,WPARAM wparam,LPARAM 
 #endif
 
 int openEditWindow(EFILE *efile){
-#ifdef _WIN_32
+#ifdef WINDOWS
   HINSTANCE hInstance=(HINSTANCE)GetModuleHandle(NULL);
   WNDCLASSEX windowClass=(WNDCLASSEX){
   	.cbSize=sizeof(WNDCLASSEX),
@@ -30,10 +30,10 @@ int openEditWindow(EFILE *efile){
 	.cbWndExtra=0,
 	.hInstance=hInstance,
 	.hIcon=LoadIcon(NULL,IDI_APPLICATION),
-	.hCursur=LoadCursor(NULL,IDC_ARROW),
+	.hCursor=LoadCursor(NULL,IDC_ARROW),
 	.hbrBackground=(HBRUSH)(COLOR_WINDOW+1),
 	.lpszMenuName=NULL,
-	.lpszClassName=windowName,
+	.lpszClassName=windowClassName,
 	.hIconSm=LoadIcon(NULL,IDI_APPLICATION)
   };
   HWND windowHandle;
@@ -42,7 +42,7 @@ int openEditWindow(EFILE *efile){
 	MessageBox(NULL,"Something went wrong when the program attempted to register the window class\n\nThe program will now terminate", "Error!",MB_ICONEXCLAMATION | MB_OK);
 	return FAILURE;
   }
-  if(!(windowHandle=CreateWindowEx(WS_EX_APPWINDOW|WS_EX_CLIENTEDGE,windowClassName,efile->name,WS_OVERLAPPEDWINDOW,CW_USEDDEFAULT,CW_USEDDEFAULT,240,120,NULL,NULL,hInstance,NULL))){
+  if(!(windowHandle=CreateWindowEx(WS_EX_APPWINDOW|WS_EX_CLIENTEDGE,windowClassName,efile->name,WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,240,120,NULL,NULL,hInstance,NULL))){
 	MessageBox(NULL,"Something went wring when the program attempted to create a window of the successfully registered class\n\nThe program will now terminate","Error!",MB_ICONEXCLAMATION | MB_OK);
 	return FAILURE;
   }

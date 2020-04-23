@@ -5,12 +5,20 @@
 #ifndef __USERINTERFACE_
 #define __USERINTERFACE_
 
+#ifdef _MSC_VER
+#define WINDOWS _MSC_VER
+#endif
+
 #include <stdio.h>
 
-#ifdef _WIN_32
+#ifdef WINDOWS
+
 #include <windows.h>
+#pragma comment(linker,"/subsystem:windows /ENTRY:mainCRTStartup")
+#pragma comment(lib,"user32.lib")
+
 #else
-//Include some linux library for msking a window pop up
+//Include some linux library for making a window pop up
 #endif
 
 #include "fileReps.h"
