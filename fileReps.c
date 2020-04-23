@@ -18,7 +18,10 @@ void logEdit(EFILE *efile,enum editType edit,int spot,int numLines,void *a){
 	  free(pt.line);
 }
 
-EFILE* makeEFILE(FILE *file,char *filename){
+EFILE* makeEFILE(char *filename){
+  FILE *file=fopen(filename,"r+");
+  if(!file)
+	return NULL;
   EFILE *out=malloc(sizeof(EFILE)+strlen(filename)+sizeof(char));
   *out=(EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.edits=NULL};
   strcpy(out->name,filename);

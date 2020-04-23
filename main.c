@@ -20,20 +20,17 @@
 
 //The goal is to create a portable underlying file editing path, so that GUI can be implemented on top after the underyling implementation is working
 
-
+//This file will contain the beginning and end of the datapath. Main will set up
 int main(int args,char *argv[]){
   //I do not anticipate being passed more than one filename but at the moment I do not want to make this an error so I'll just open all non-first arguments
   //For the time being I am going to assume that the mode this program was run in will give me read access to filename if it exists
  
   //userFiles will be a continuously updated linked list of open EFILES
   EFILEList userFiles=(EFILEList){.head=NULL,.tail=NULL};
-  FILE *fp;
   EFILE *efile;
   int c;
   for(c=1;c<args;++c){
-	fp=fopen(argv[c],"r");
-	if(fp){
-		efile=makeEFILE(fp,argv[c]);
+	if((efile=makeEFILE(argv[c]))){
 		if(userFiles.head){
 			userFiles.tail->next=efile;
 			efile->prev=userFiles.tail;

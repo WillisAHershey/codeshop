@@ -36,7 +36,7 @@ typedef struct{
   EFILE *tail;
 }EFILEList;
 
-EFILE* makeEFILE(FILE*,char*);
+EFILE* makeEFILE(char*);
 EFILE* makeEmptyEFILE(char*);
 void freeEFILE(EFILE*);
 int writeEFILE(EFILE*);

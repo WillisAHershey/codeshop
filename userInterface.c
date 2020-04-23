@@ -4,9 +4,58 @@
 #include "fileReps.h"
 #include "codeshopDefs.h"
 
+const char windowClassName[] = "Codeshop coding environment";
+
+#ifdef _WIN_32
+//Windows specific code here
+LPARAM CALLBACK WndProc(HWND windowHandle,unsigned message,WPARAM wparam,LPARAM lparam){
+  printf("%u\n",message);
+  DefWindowProc(windowHandle,message,wparam,lparam);
+}
+
+#else
+//Linux specific code here
+
+
+#endif
+
 int openEditWindow(EFILE *efile){
-  //stuff here
+#ifdef _WIN_32
+  HINSTANCE hInstance=(HINSTANCE)GetModuleHandle(NULL);
+  WNDCLASSEX windowClass=(WNDCLASSEX){
+  	.cbSize=sizeof(WNDCLASSEX),
+	.style=0,
+	.lpfnWndProc=WndProc,
+	.cbClsExtra=0,
+	.cbWndExtra=0,
+	.hInstance=hInstance,
+	.hIcon=LoadIcon(NULL,IDI_APPLICATION),
+	.hCursur=LoadCursor(NULL,IDC_ARROW),
+	.hbrBackground=(HBRUSH)(COLOR_WINDOW+1),
+	.lpszMenuName=NULL,
+	.lpszClassName=windowName,
+	.hIconSm=LoadIcon(NULL,IDI_APPLICATION)
+  };
+  HWND windowHandle;
+  MSG message;
+  if(!RegisterClassEx(&windowClass)){
+	MessageBox(NULL,"Something went wrong when the program attempted to register the window class\n\nThe program will now terminate", "Error!",MB_ICONEXCLAMATION | MB_OK);
+	return FAILURE;
+  }
+  if(!(windowHandle=CreateWindowEx(WS_EX_APPWINDOW|WS_EX_CLIENTEDGE,windowClassName,efile->name,WS_OVERLAPPEDWINDOW,CW_USEDDEFAULT,CW_USEDDEFAULT,240,120,NULL,NULL,hInstance,NULL))){
+	MessageBox(NULL,"Something went wring when the program attempted to create a window of the successfully registered class\n\nThe program will now terminate","Error!",MB_ICONEXCLAMATION | MB_OK);
+	return FAILURE;
+  }
+  ShowWindow(windowHandle,SW_MAXIMIZE);
+  UpdateWindow(windowHandle);
+  while(GetMessage(&message,NULL,0,0)>0){
+	TranslateMessage(&message);
+	DispatchMessage(&message);
+  }
+  return SUCCESS;
+#else
   return FAILURE;
+#endif
 }
 
 int resolveFailedToOpenForRead(EFILEList *filelist,char *filename){
