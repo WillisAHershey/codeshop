@@ -1,9 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+//Willis Hershey
+//This file contains the implementations of the functions in fileReps.h
+
+#include <stdio.h> //fopen fclose fgets
+#include <stdlib.h>//malloc free NULL
+#include <string.h>//strlen
+
+#include "codeshopDefs.h"
 #include "fileReps.h"
 #include "userInterface.h"
-#include "codeshopDefs.h"
 
 union flexPointer{
   lineNode *line;
@@ -22,17 +26,18 @@ EFILE* makeEFILE(char *filename){
   FILE *file=fopen(filename,"r+");
   if(!file)
 	return NULL;
-  EFILE *out=malloc(sizeof(EFILE)+strlen(filename)+sizeof(char));
-  *out=(EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.edits=NULL};
+  EFILE *out=malloc(sizeof(EFILE)+strlen(filename)+sizeof(NULL_TERMINATOR));
+  *out=EMPTY_EFILE_NO_NAME;
   strcpy(out->name,filename);
   int len, overflow;
   lineNode *pt;
   char buf[LINE_BUF_LEN];
   int numLines=0;
   while(fgets(buf,LINE_BUF_LEN,file)){
-	pt=malloc(sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+sizeof(char));
-	*pt=(lineNode){.next=NULL,.prev=out->tail};
+	pt=malloc(sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+sizeof(NULL_TERMINATOR));
+	*pt=EMPTY_LINENODE_NO_LINE;
 	strcpy(pt->line,buf);
+	pt->prev=out->tail;
 	if(len==LINE_BUF_LEN-1&&buf[LINE_BUF_LEN-2]!='\n'){
 		overflow=1;
 		while(fgets(buf,LINE_BUF_LEN,file)){
@@ -62,9 +67,9 @@ EFILE* makeEFILE(char *filename){
 }
 
 EFILE* makeEmptyEFILE(char *filename){
-  size_t len=filename?strlen(filename)+1:1;
-  EFILE *out=malloc(sizeof(EFILE)+len);
-  *out=(EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.edits=NULL,.numLines=0};
+  size_t len=filename?strlen(filename):0;
+  EFILE *out=malloc(sizeof(EFILE)+len+sizeof(NULL_TERMINATOR));
+  *out=EMPTY_EFILE_NO_NAME;
   if(filename)
 	strcpy(out->name,filename);
   else
@@ -85,8 +90,8 @@ void freeEFILE(EFILE *efile){
 }
 
 int writeEFILE(EFILE *efile){
-  FILE *fd;
-  if(!(fd=fopen(efile->name,"w")))
+  FILE *fd=fopen(efile->name,"w+");
+  if(!fd)
 	return FAILURE;
   lineNode *pt=efile->head;
   while(pt){
@@ -94,13 +99,6 @@ int writeEFILE(EFILE *efile){
 	pt=pt->next;
   }
   fclose(fd);
-  return SUCCESS;
-}
-
-int writeAndFreeEFILE(EFILE *efile){
-  if(!writeEFILE(efile))
-	return FAILURE;
-  freeEFILE(efile);
   return SUCCESS;
 }
 
@@ -139,67 +137,5 @@ void printEFILE(EFILE *efile){
   lineNode *pt;
   for(pt=efile->head;pt;pt=pt->next)
 	printf("%s\n",pt->line);
-}
-
-int EFILEAppendLine(EFILE *efile,char *line){
-  lineNode *pt=malloc(sizeof(lineNode)+strlen(line)+1);
-  pt->next=NULL;
-  strcpy(pt->line,line);
-  if(!efile->tail){
-	efile->head=efile->tail=pt;
-	pt->prev=NULL;
-	efile->numLines=1;
-  }
-  else{
-	efile->tail->next=pt;
-	pt->prev=efile->tail;
-	efile->tail=pt;
-	++efile->numLines;
-  }
-
-  logEdit(efile,INSERTION,AT_END,1,line);
-  return SUCCESS;
-}
-
-int EFILEDeleteLine(EFILE *efile,int lineNum){
-  register int numLines=efile->numLines;
-  register lineNode *pt;
-  if(lineNum<1||lineNum>numLines)
-	return FAILURE;
-  if(lineNum==1){
-	pt=efile->head;
-	if(numLines==1)
-		efile->head=efile->tail=NULL;
-	else{
-		efile->head=pt->next;
-		pt->next->prev=NULL;
-	}
-  }
-  else{
-	if(lineNum==numLines){
-		pt=efile->tail;
-		efile->tail=pt->prev;
-		efile->tail->next=NULL;
-	}
-	else{
-		int c;
-		if(lineNum<=numLines/2){
-			pt=efile->head;
-			for(c=1;c<lineNum;++c)
-				pt=pt->next;
-		}
-		else{
-			pt=efile->tail;
-			for(c=numLines;c>lineNum;--c)
-				pt=pt->prev;
-		}
-		pt->prev->next=pt->next;
-		pt->next->prev=pt->prev;
-	}
-  }
-  //at this point pt is pointing to line being deleted, and it is disconnected from list in EFILE
-  logEdit(efile,DELETION,lineNum,1,pt);
-  --efile->numLines;
-  return SUCCESS;
 }
 

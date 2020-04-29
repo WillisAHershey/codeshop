@@ -1,6 +1,8 @@
 #ifndef __CODESHOPDEFS_
 #define __CODESHOPDEFS_
 
+#define NULL_TERMINATOR char
+
 #define AT_END ~0
 
 #define SUCCESS 1

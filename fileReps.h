@@ -1,7 +1,6 @@
 //Willis A. Hershey
-//Last updated April 17th 2020
-//
 //This file contains definitions of structures and related functions used in the codeshop project to represent files as they are being read and edited
+
 #ifndef __FILEREPS_
 #define __FILEREPS_
 
@@ -10,8 +9,10 @@
 typedef struct lineNodeStruct{
   struct lineNodeStruct *next;
   struct lineNodeStruct *prev;
-  char line[0];
+  char line[];
 }lineNode;
+
+#define EMPTY_LINENODE_NO_LINE (lineNode){.next=NULL,.prev=NULL}
 
 enum editType{DELETION,INSERTION,LINEEDIT};
 
@@ -26,15 +27,27 @@ typedef struct EFILEStruct{
   struct EFILEStruct *prev;
   lineNode *head;
   lineNode *tail;
+  lineNode *cursor;
   editLog *edits;
   int numLines;
-  char name[0];
+  char name[];
 }EFILE;
+
+#define EMPTY_EFILE_NO_NAME (EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.cursor=NULL,.edits=NULL,.numLines=0}
+
+typedef struct fileErrorStruct{
+  struct fileErrorStruct *next;
+  const char *filename;
+}fileError;
 
 typedef struct{
   EFILE *head;
   EFILE *tail;
+  fileError *errorHead;
+  fileError *errorTail;
 }EFILEList;
+
+#define EMPTY_EFILE_LIST (EFILEList){.head=NULL,.tail=NULL,.errorHead=NULL,.errorTail=NULL}
 
 EFILE* makeEFILE(char*);
 EFILE* makeEmptyEFILE(char*);

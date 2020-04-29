@@ -1,26 +1,21 @@
 //Willis A. Hershey
-//Last edited April 17th 2020
+//This file contains platform specific implementations of the functions defined in userInterface.h
+
+#include "codeshopDefs.h"
 #include "userInterface.h"
 #include "fileReps.h"
-#include "codeshopDefs.h"
-
-const char windowClassName[] = "Codeshop coding environment";
 
 #ifdef WINDOWS
 //Windows specific code here
+
+//Windows specific function to handle window-events
 LPARAM CALLBACK WndProc(HWND windowHandle,unsigned message,WPARAM wparam,LPARAM lparam){
   printf("%u\n",message);
   return DefWindowProc(windowHandle,message,wparam,lparam);
 }
 
-#else
-//Linux specific code here
-
-
-#endif
-
-int openEditWindow(EFILE *efile){
-#ifdef WINDOWS
+//Windows implementation for openMainWindow
+int openMainWindow(EFILEList *userFiles){
   HINSTANCE hInstance=(HINSTANCE)GetModuleHandle(NULL);
   WNDCLASSEX windowClass=(WNDCLASSEX){
   	.cbSize=sizeof(WNDCLASSEX),
@@ -43,7 +38,7 @@ int openEditWindow(EFILE *efile){
 	return FAILURE;
   }
   if(!(windowHandle=CreateWindowEx(WS_EX_APPWINDOW|WS_EX_CLIENTEDGE,windowClassName,efile->name,WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,240,120,NULL,NULL,hInstance,NULL))){
-	MessageBox(NULL,"Something went wring when the program attempted to create a window of the successfully registered class\n\nThe program will now terminate","Error!",MB_ICONEXCLAMATION | MB_OK);
+	MessageBox(NULL,"Something went wrong when the program attempted to create a window of the successfully registered class\n\nThe program will now terminate","Error!",MB_ICONEXCLAMATION | MB_OK);
 	return FAILURE;
   }
   ShowWindow(windowHandle,SW_MAXIMIZE);
@@ -53,10 +48,31 @@ int openEditWindow(EFILE *efile){
 	DispatchMessage(&message);
   }
   return SUCCESS;
-#else
-  return FAILURE;
-#endif
 }
+
+int messageWindow(const char *message,const char *header,enum messageType type,WINDOW_HANDLE windowHandle){
+  if(type==notice)
+	MessageBox(windowHandle,message,header,MS_OK);
+  else if(type==error)
+	messageBox(windowHandle,message,header,MS_ICONEXCLAMATION|MS_OK);
+  else
+	return FAILURE;
+  return SUCCESS;
+}
+
+#else
+
+//Linux specific code
+
+int openMainWindow(EFILEList *userFiles){
+  return FAILURE;
+}
+
+int messageWindow(const char *message,const char *header,enum messageType type,WINDOW_HANDLE windowHandle){
+  return FAILURE;
+}
+
+#endif
 
 int resolveFailedToOpenForRead(EFILEList *filelist,char *filename){
   //This function is called when the program tries and fails to open a file that is supposed to already exist
