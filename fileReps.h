@@ -53,11 +53,10 @@ EFILE* makeEFILE(char*);
 EFILE* makeEmptyEFILE(char*);
 void freeEFILE(EFILE*);
 int writeEFILE(EFILE*);
-int writeAndFreeEFILE(EFILE*);
 void freeEFILEList(EFILEList*);
 void removeEFILEListAndFree(EFILEList*,EFILE*);
 void printEFILE(EFILE*);
-int EFILEAppendLine(EFILE*,char*);
-int EFILEDeleteLine(EFILE*,int);
+int EFILEInsertLines(EFILE*,int,lineNode*,lineNode*);
+int EFILEDeleteLines(EFILE*,int,lineNode*);
 
 #endif

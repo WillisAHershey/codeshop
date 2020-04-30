@@ -99,6 +99,7 @@ int writeEFILE(EFILE *efile){
 	pt=pt->next;
   }
   fclose(fd);
+  //free and clear edits
   return SUCCESS;
 }
 
@@ -110,6 +111,7 @@ void freeEFILEList(EFILEList *list){
 	efile=efile->next;
 	freeEFILE(run);
   }
+  //handle error list
 }
 
 void removeEFILEListAndFree(EFILEList *efilelist,EFILE *efile){
@@ -133,9 +135,17 @@ void removeEFILEListAndFree(EFILEList *efilelist,EFILE *efile){
 }
 
 void printEFILE(EFILE *efile){
-  printf("%s\nContaints %d lines\n",efile->name,efile->numLines);
+  printf("%s\nContains %d lines\n",efile->name,efile->numLines);
   lineNode *pt;
   for(pt=efile->head;pt;pt=pt->next)
 	printf("%s\n",pt->line);
+}
+
+int EFILEInsertLines(EFILE *efile,int numLines,lineNode *beg,lineNode *end){
+  return FAILURE;
+}
+
+int EFILEDeleteLines(EFILE *efile,int numLines,lineNode *end){
+  return FAILURE;
 }
 

@@ -10,8 +10,6 @@
 
 #endif
 
-#include <stdio.h>
-
 #ifdef WINDOWS
 
 #	include <windows.h>
@@ -29,8 +27,8 @@
 
 #endif
 
-static const char windowClassName[] = "Codeshop coding environment";
-static const char defaultFileName[] = "<noname>.c";
+const static char windowClassName[] = "Codeshop coding environment";
+const static char defaultFileName[] = "<noname>.c";
 
 #include "fileReps.h"
 
