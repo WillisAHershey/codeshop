@@ -13,6 +13,7 @@
 #ifdef WINDOWS
 
 #	include <windows.h>
+
 //This allows this file to compile on Windows systems
 #	pragma comment(linker,"/subsystem:windows /ENTRY:mainCRTStartup")
 #	pragma comment(lib,"user32.lib")

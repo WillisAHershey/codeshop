@@ -11,7 +11,16 @@
 //Windows specific function to handle window-events
 LPARAM CALLBACK WndProc(HWND windowHandle,unsigned message,WPARAM wparam,LPARAM lparam){
   printf("%u\n",message);
-  return DefWindowProc(windowHandle,message,wparam,lparam);
+  switch(message){
+	case WM_CLOSE:
+		DestroyWindow(windowHandle);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	default:
+	      return DefWindowProc(windowHandle,message,wparam,lparam);
+  }
 }
 
 //Windows implementation for openMainWindow
@@ -37,7 +46,7 @@ int openMainWindow(EFILEList *userFiles){
 	MessageBox(NULL,"Something went wrong when the program attempted to register the window class\n\nThe program will now terminate", "Error!",MB_ICONEXCLAMATION | MB_OK);
 	return FAILURE;
   }
-  if(!(windowHandle=CreateWindowEx(WS_EX_APPWINDOW|WS_EX_CLIENTEDGE,windowClassName,efile->name,WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,240,120,NULL,NULL,hInstance,NULL))){
+  if(!(windowHandle=CreateWindowEx(WS_EX_APPWINDOW|WS_EX_CLIENTEDGE,windowClassName,userFiles->head->name,WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,240,120,NULL,NULL,hInstance,NULL))){
 	MessageBox(NULL,"Something went wrong when the program attempted to create a window of the successfully registered class\n\nThe program will now terminate","Error!",MB_ICONEXCLAMATION | MB_OK);
 	return FAILURE;
   }
@@ -52,9 +61,9 @@ int openMainWindow(EFILEList *userFiles){
 
 int messageWindow(const char *message,const char *header,enum messageType type,WINDOW_HANDLE windowHandle){
   if(type==notice)
-	MessageBox(windowHandle,message,header,MS_OK);
+	MessageBox(windowHandle,message,header,MB_OK);
   else if(type==error)
-	messageBox(windowHandle,message,header,MS_ICONEXCLAMATION|MS_OK);
+	MessageBox(windowHandle,message,header,MB_ICONEXCLAMATION|MB_OK);
   else
 	return FAILURE;
   return SUCCESS;
