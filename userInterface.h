@@ -22,7 +22,10 @@
 
 #else
 
-	//Include some linux library for making a window pop up
+#	include <X11/Xlib.h>
+#	include <X11/Xutil.h>
+#	include <X11/Xos.h>
+
 //This sholuld be something else
 #	define WINDOW_HANDLE void*
 
