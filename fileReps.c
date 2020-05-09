@@ -9,17 +9,9 @@
 #include "fileReps.h"
 #include "userInterface.h"
 
-union flexPointer{
-  lineNode *line;
-  char *text;
-};
-
 //Not available in .h file, so not linkable.
 void logEdit(EFILE *efile,enum editType edit,int spot,int numLines,void *a){
-  union flexPointer pt;
-  pt.line=a;
-  if(edit==DELETION)
-	  free(pt.line);
+  return;
 }
 
 EFILE* makeEFILE(char *filename){

@@ -28,7 +28,7 @@ typedef struct EFILEStruct{
   lineNode *head;
   lineNode *tail;
   lineNode *cursor;
-  editLog *edits;
+  editLog *edits; //This will someday be a struct pointer
   int numLines;
   char name[];
 }EFILE;
