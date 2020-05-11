@@ -12,6 +12,11 @@ When a user-level file is opened it should:
 
 Be opened in such a way that it can be safely edited without harming the original until the user decides to write changes into the file
 Be opened in a portable (non-implementation specific) way
-
+	fopen fprintf and fclose will provide the portable file editing
+Three distinct guis will be written in the userInterface.c file
+	The Microsoft Windows gui will be written using the Windows interface
+	The Linux gui will be written using the X11 interface
+	and the MacOs gui will be written using the Quartz interface
+	
 
 
