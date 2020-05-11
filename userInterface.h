@@ -25,13 +25,14 @@
 //MacOs specific stuff
 
 #else
+//Linux specific stuff
 
+//These are the developer files, so this will only build if you have them installed
 #	include <X11/Xlib.h>
 #	include <X11/Xutil.h>
 #	include <X11/Xos.h>
 
-//This sholuld be something else
-#	define WINDOW_HANDLE void*
+#	define WINDOW_HANDLE Display
 
 #endif
 
