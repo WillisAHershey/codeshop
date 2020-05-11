@@ -54,6 +54,7 @@ int main(int args,char *argv[]){
 	userFiles.head=userFiles.tail=makeEmptyEFILE(NULL);
   //And pass control to the GUI
   openMainWindow(&userFiles);
+  printf("Control made it back to main\n");
   //When GUI is closed, clean up and exit
   freeEFILEList(&userFiles);
 }

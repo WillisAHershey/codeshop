@@ -35,7 +35,13 @@
 #	include <X11/Xutil.h>
 #	include <X11/Xos.h>
 
-#	define WINDOW_HANDLE Display*
+	typedef struct{
+		Display *display;
+		Screen *screen;
+		Window window;
+	}x11Handle;
+
+#	define WINDOW_HANDLE x11Handle*
 //WINDOW_HANDLE is how codeshop refers to window handles, but X11 calls them Display pointers
 
 #endif

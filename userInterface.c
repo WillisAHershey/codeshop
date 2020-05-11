@@ -83,10 +83,121 @@ int messageWindow(const char *message,const char *header,enum messageType type,W
 
 #else
 
+#include <stdio.h> //For testing
+
 //Linux specific code
 
+void eventLoop(WINDOW_HANDLE handle){
+  char buf[10];
+  int loop=1;
+  Atom deleteWindow=XInternAtom(handle->display,"WM_DELETE_WINDOW",True);
+  XSetWMProtocols(handle->display,handle->window,&deleteWindow,1);
+  while(loop){
+	XEvent event;
+	KeySym key;
+	XNextEvent(handle->display,&event);
+	switch(event.type){
+		case KeyPress:
+			printf("KeyPress caught:keycode=%u ",event.xkey.keycode);
+			if(XLookupString(&event.xkey,buf,10,&key,0)==1)
+				printf("%c (%d)\n",buf[0],buf[0]);
+			else{
+				if(event.xkey.state==ShiftMask)
+					printf("Shift key\n");
+				else if(event.xkey.state==LockMask)
+					printf("Lock key\n");
+				else if(event.xkey.state==ControlMask)
+					printf("Lock key\n");
+				else if(event.xkey.state==Mod1Mask)
+					printf("Mod1 key\n");
+				else if(event.xkey.state==Mod2Mask)
+					printf("Mod2 key\n");
+				else if(event.xkey.state==Mod3Mask)
+					printf("Mod3 key\n");
+				else if(event.xkey.state==Mod4Mask)
+					printf("Mod4 key\n");
+				else if(event.xkey.state==Mod5Mask)
+					printf("Mod5 key\n");
+				else
+					printf("state=%u Parser error\n",event.xkey.state);
+			}
+			break;
+		case KeyRelease:
+			printf("KeyRelease caught:keycode=%u ",event.xkey.keycode);
+			if(XLookupString(&event.xkey,buf,10,&key,0)==1)
+				printf("%c (%d)\n",buf[0],buf[0]);
+			else{
+				if(event.xkey.state==ShiftMask)
+					printf("Shift key\n");
+				else if(event.xkey.state==LockMask)
+					printf("Lock key\n");
+				else if(event.xkey.state==ControlMask)
+					printf("Lock key\n");
+				else if(event.xkey.state==Mod1Mask)
+					printf("Mod1 key\n");
+				else if(event.xkey.state==Mod2Mask)
+					printf("Mod2 key\n");
+				else if(event.xkey.state==Mod3Mask)
+					printf("Mod3 key\n");
+				else if(event.xkey.state==Mod4Mask)
+					printf("Mod4 key\n");
+				else if(event.xkey.state==Mod5Mask)
+					printf("Mod5 key\n");
+				else
+					printf("state=%u Parser error\n",event.xkey.state);
+			}
+			break;
+		case ButtonPress:
+			printf("ButtonPress caught:Click by %u at (%d,%d)\n",event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			break;
+		case ButtonRelease:
+			printf("ButtonRelease caught:Release by %u at (%d,%d)\n",event.xbutton.button,event.xbutton.x,event.xbutton.y);
+			break;
+		case Expose:
+			printf("Expose caught:x=%d y=%d width=%d height=%d count=%d\n",event.xexpose.x,event.xexpose.y,event.xexpose.width,event.xexpose.height,event.xexpose.count);
+			if(event.xexpose.count==0)
+				XClearWindow(handle->display,handle->window);
+			break;
+		case ClientMessage:
+			printf("ClientMessage caught: ");
+			if(event.xclient.format==32&&event.xclient.data.l[0]==deleteWindow){
+				loop=0;
+				printf("Destroy window message. Exiting loop\n");
+			}
+			else
+				printf("Unrecognized client message\n");
+
+			break;
+		default:
+			printf("Unknown event (%d) caught and ignored\n",event.type);
+			break;
+	}
+  }
+}
+
+//X11 specific implementation of openMainWindow
 int openMainWindow(EFILEList *userFiles){
-  return FAILURE;
+  x11Handle handle;
+  handle.display=XOpenDisplay(NULL);
+  handle.screen=DefaultScreenOfDisplay(handle.display);
+  XSetWindowAttributes swa;
+  swa.background_pixel=WhitePixelOfScreen(handle.screen);
+  swa.bit_gravity=NorthWestGravity;
+  swa.border_pixel=BlackPixelOfScreen(handle.screen);
+  swa.colormap=DefaultColormapOfScreen(handle.screen);
+  swa.cursor=None;
+  swa.win_gravity=NorthGravity;
+  handle.window=XCreateWindow(handle.display,RootWindowOfScreen(handle.screen),0,0,600,600,0,CopyFromParent,CopyFromParent,CopyFromParent,CWBackPixel|CWBitGravity|CWBorderPixel|CWColormap|CWCursor|CWWinGravity,&swa);
+  XSetStandardProperties(handle.display,handle.window,"Title of window","Don't know where this goes",None,NULL,0,NULL);
+  XSelectInput(handle.display,handle.window,ExposureMask|ButtonPressMask|ButtonReleaseMask|KeyPressMask|KeyReleaseMask);
+  GC gc=XCreateGC(handle.display,handle.window,0,0);
+  XClearWindow(handle.display,handle.window);
+  XMapRaised(handle.display,handle.window);
+  eventLoop(&handle);
+  XFreeGC(handle.display,gc);
+  XDestroyWindow(handle.display,handle.window);
+  XCloseDisplay(handle.display);
+  return SUCCESS;
 }
 
 int messageWindow(const char *message,const char *header,enum messageType type,WINDOW_HANDLE windowHandle){
