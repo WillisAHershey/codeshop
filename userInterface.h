@@ -24,8 +24,8 @@
 
 //MacOs specific stuff
 
-//This should be something else
-#define WINDOW_HANDLE void*
+//This will be something else when I get around to writing a Quartz gui
+#	define WINDOW_HANDLE void*
 
 #else
 //Linux specific stuff
@@ -35,7 +35,8 @@
 #	include <X11/Xutil.h>
 #	include <X11/Xos.h>
 
-#	define WINDOW_HANDLE Display
+#	define WINDOW_HANDLE Display*
+//WINDOW_HANDLE is how codeshop refers to window handles, but X11 calls them Display pointers
 
 #endif
 
