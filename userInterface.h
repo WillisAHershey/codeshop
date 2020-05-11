@@ -24,6 +24,9 @@
 
 //MacOs specific stuff
 
+//This should be something else
+#define WINDOW_HANDLE void*
+
 #else
 //Linux specific stuff
 
