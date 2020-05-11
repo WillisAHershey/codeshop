@@ -20,6 +20,10 @@
 //WINDOW_HANDLE is how codeshop code refers to window handles, but Windows calls them HWND
 #	define WINDOW_HANDLE HWND
 
+#elif defined __APPLE__
+
+//MacOs specific stuff
+
 #else
 
 #	include <X11/Xlib.h>
@@ -42,5 +46,6 @@ int openMainWindow(EFILEList *userFiles);
 int messageWindow(const char*,const char*,enum messageType,WINDOW_HANDLE);
 int resolveFailedToOpenForRead(EFILEList*,char*);
 int resolveFailedToOpenForWrite(EFILEList*,EFILE*);
+//int resolveEFILELeftUnwritten(EFILEList*,EFILE*);
 
 #endif

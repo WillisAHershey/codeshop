@@ -69,6 +69,18 @@ int messageWindow(const char *message,const char *header,enum messageType type,W
   return SUCCESS;
 }
 
+#elif defined __APPLE__
+
+//MacOs specfic code
+
+int openMainWindow(EFILEList *userFiles){
+  return FAILURE;
+}
+
+int messageWindow(const char *message,const char *header,enum messageType type,WINDOW_HANDLE windowHandle){
+  return FAILURE;
+}
+
 #else
 
 //Linux specific code
@@ -79,6 +91,7 @@ int openMainWindow(EFILEList *userFiles){
 
 int messageWindow(const char *message,const char *header,enum messageType type,WINDOW_HANDLE windowHandle){
   return FAILURE;
+
 }
 
 #endif
