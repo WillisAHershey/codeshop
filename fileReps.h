@@ -78,8 +78,10 @@ int writeEFILE(EFILE*);
 void freeEFILEList(EFILEList*);
 void removeEFILEListAndFree(EFILEList*,EFILE*);
 void printEFILE(EFILE*);
-int EFILEInsertLines(EFILE*,int,lineNode*,lineNode*);
+int EFILEInsertLinesBefore(EFILE*,lineNode*,lineNode*,lineNode*);
+int EFILEInsertLinesAfter(EFILE*,lineNode*,lineNode*,lineNode*);
 int EFILEDeleteLines(EFILE*,int,int);
+int EFILEUndo(EFILE*);
 int renameEFILE(EFILEList*,EFILE*,const char*);
 
 #endif

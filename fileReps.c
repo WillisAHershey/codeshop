@@ -216,6 +216,26 @@ int EFILEDeleteLines(EFILE *efile,int numLines,int index){
   return SUCCESS;
 }
 
+int EFILEUndo(EFILE *efile){
+  assert(efile);
+  editLog *edit=efile->edits;
+  if(!edit)
+	return FAILURE;
+  efile->edits=edit->next;
+  switch(edit->editType){
+	case DELETION:
+		//handle reinserting a deletion
+		break;
+	case INSERTION:
+		//handle deleting an insertion
+		break;
+	case LINE_EDIT:
+		//revert line to original form
+		break;
+  }
+  return SUCCESS;
+}
+
 int renameEFILE(EFILEList *efileList,EFILE *efile,const char *newName){
   assert(efileList&&efile&&newName);
   EFILE *prev=efile->prev;
