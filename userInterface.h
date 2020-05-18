@@ -46,9 +46,6 @@
 
 #endif
 
-const static char windowClassName[] = "Codeshop coding environment";
-const static char defaultFileName[] = "<noname>.c";
-
 #include "fileReps.h"
 
 enum messageType{notice,error,yesNoQuestion};

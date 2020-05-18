@@ -4,17 +4,13 @@
 #include <stdio.h> //fopen fclose fgets
 #include <stdlib.h>//malloc free NULL
 #include <string.h>//strlen
+#include <assert.h>//assert
 
 #include "codeshopDefs.h"
 #include "fileReps.h"
 #include "userInterface.h"
 
-//Not available in .h file, so not linkable.
-void logEdit(EFILE *efile,enum editType edit,int spot,int numLines,void *a){
-  return;
-}
-
-EFILE* makeEFILE(char *filename){
+EFILE* makeEFILE(const char *filename){
   FILE *file=fopen(filename,"r+");
   if(!file)
 	return NULL;
@@ -24,7 +20,6 @@ EFILE* makeEFILE(char *filename){
   int len, overflow;
   lineNode *pt;
   char buf[LINE_BUF_LEN];
-  int numLines=0;
   while(fgets(buf,LINE_BUF_LEN,file)){
 	pt=malloc(sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+sizeof(NULL_TERMINATOR));
 	*pt=EMPTY_LINENODE_NO_LINE;
@@ -33,7 +28,7 @@ EFILE* makeEFILE(char *filename){
 	if(len==LINE_BUF_LEN-1&&buf[LINE_BUF_LEN-2]!='\n'){
 		overflow=1;
 		while(fgets(buf,LINE_BUF_LEN,file)){
-			pt=realloc(pt,sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+overflow*(LINE_BUF_LEN-1)+1);
+			pt=realloc(pt,sizeof(lineNode)+(len=strnlen(buf,LINE_BUF_LEN-1))+overflow*(LINE_BUF_LEN-1)+sizeof(NULL_TERMINATOR));
 			strcpy(pt->line+(LINE_BUF_LEN-1)*overflow,buf);
 			if(len<LINE_BUF_LEN-1||buf[LINE_BUF_LEN-2]=='\n'){
 				pt->line[(LINE_BUF_LEN-1)*overflow+len-1]='\0';
@@ -51,33 +46,35 @@ EFILE* makeEFILE(char *filename){
 	}
 	else
 		out->head=out->tail=pt;
-	++numLines;
   }
-  out->numLines=numLines;
   fclose(file);
   return out;
 }
 
-EFILE* makeEmptyEFILE(char *filename){
-  size_t len=filename?strlen(filename):0;
+EFILE* makeEmptyEFILE(const char *filename){
+  size_t len=filename?strlen(filename):strlen(defaultFileName);
   EFILE *out=malloc(sizeof(EFILE)+len+sizeof(NULL_TERMINATOR));
   *out=EMPTY_EFILE_NO_NAME;
   if(filename)
 	strcpy(out->name,filename);
   else
-	out->name[0]='\0';
+	strcpy(out->name,defaultFileName);
   return out;
 }
 
 void freeEFILE(EFILE *efile){
   lineNode *pt=efile->head;
-  lineNode *run;
   while(pt){
-	run=pt;
+	lineNode *run=pt;
 	pt=pt->next;
 	free(run);
   }
-  //free edits
+  while(efile->edits){
+	editLog *hold=efile->edits->next;
+	//This produces a leak in the case editType==DELETION
+	free(efile->edits);
+	efile->edits=hold;
+  }
   free(efile);
 }
 
@@ -91,7 +88,11 @@ int writeEFILE(EFILE *efile){
 	pt=pt->next;
   }
   fclose(fd);
-  //free and clear edits
+  while(efile->edits){
+	editLog *hold=efile->edits->next;
+	free(efile->edits);
+	efile->edits=hold;
+  }
   return SUCCESS;
 }
 
@@ -127,17 +128,108 @@ void removeEFILEListAndFree(EFILEList *efilelist,EFILE *efile){
 }
 
 void printEFILE(EFILE *efile){
-  printf("%s\nContains %d lines\n",efile->name,efile->numLines);
   lineNode *pt;
   for(pt=efile->head;pt;pt=pt->next)
 	printf("%s\n",pt->line);
 }
-
-int EFILEInsertLines(EFILE *efile,int numLines,lineNode *beg,lineNode *end){
-  return FAILURE;
+ 
+int EFILEInsertLinesBefore(EFILE *efile,lineNode *here,lineNode *beg,lineNode *end){
+  assert(efile&&here&&beg&&end);
+  int len=1;
+  for(lineNode *c=beg;c!=end;c=c->next)
+	++len;
+  beg->prev=here->prev;
+  if(!here->prev)
+	efile->head=beg;
+  else
+	here->prev->next=beg;
+  end->next=here;
+  here->prev=end;
+  lineNode *top=beg->prev;
+  lineNode *bottom=beg->next;
+  int index=0;
+  while(top&&bottom){
+	top=top->prev;
+	bottom=bottom->next;
+	++index;
+  }
+  if(top&&!bottom)
+	index*=-1;
+  editLog *edit=malloc(sizeof(editLog));
+  *edit=(editLog){.next=efile->edits,.editType=INSERTION,.insertion=(insertionLog){.index=index,.numLines=len}};
+  efile->edits=edit;
+  return SUCCESS;
 }
 
-int EFILEDeleteLines(EFILE *efile,int numLines,lineNode *end){
-  return FAILURE;
+int EFILEInsertLinesAfter(EFILE *efile,lineNode *here,lineNode *beg,lineNode *end){
+  assert(efile&&here&&beg&&end);
+  int len=1;
+  for(lineNode *c=beg;c!=end;c=c->next)
+	++len;
+  end->next=here->next;
+  if(!here->next)
+	efile->tail=end;
+  else
+	here->next->prev=end;
+  beg->prev=here;
+  here->next=beg;
+  lineNode *top=beg->prev;
+  lineNode *bottom=beg->next;
+  int index=0;
+  while(top&&bottom){
+	top=top->prev;
+	bottom=bottom->next;
+	++index;
+  }
+  if(top&&!bottom)
+	index*=-1;
+  editLog *edit=malloc(sizeof(editLog));
+  *edit=(editLog){.next=efile->edits,.editType=INSERTION,.insertion=(insertionLog){.index=index,.numLines=len}};
+  efile->edits=edit;
+  return SUCCESS;
+}
+
+int EFILEDeleteLines(EFILE *efile,int numLines,int index){
+  assert(efile&&numLines);
+  lineNode *beg,*end;
+  if(index<0){
+	for(end=efile->tail;index;++index)
+		end=end->prev;
+	for(beg=end;--numLines;--numLines)
+		beg=beg->prev;
+  }
+  else{
+	for(beg=efile->head;index;--index)
+		beg=beg->next;
+	for(end=beg;--numLines;--numLines)
+		end=end->next;
+  }
+  if(beg->prev)
+	beg->prev->next=end->next;
+  else
+	efile->head=end->next;
+  if(end->next)
+	end->next->prev=beg->prev;
+  else
+	efile->tail=beg->prev;
+  beg->prev=end->next=NULL;
+  return SUCCESS;
+}
+
+int renameEFILE(EFILEList *efileList,EFILE *efile,const char *newName){
+  assert(efileList&&efile&&newName);
+  EFILE *prev=efile->prev;
+  EFILE *next=efile->next;
+  efile=realloc(efile,sizeof(EFILE)+strlen(newName)+sizeof(NULL_TERMINATOR));
+  strcpy(efile->name,newName);
+  if(prev)
+	prev->next=efile;
+  else
+	efileList->head=efile;
+  if(next)
+	next->prev=efile;
+  else
+	efileList->tail=efile;
+  return SUCCESS;
 }
 

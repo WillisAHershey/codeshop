@@ -188,7 +188,7 @@ int openMainWindow(EFILEList *userFiles){
   swa.cursor=None;
   swa.win_gravity=NorthGravity;
   handle.window=XCreateWindow(handle.display,RootWindowOfScreen(handle.screen),0,0,600,600,0,CopyFromParent,CopyFromParent,CopyFromParent,CWBackPixel|CWBitGravity|CWBorderPixel|CWColormap|CWCursor|CWWinGravity,&swa);
-  XSetStandardProperties(handle.display,handle.window,"Title of window","Don't know where this goes",None,NULL,0,NULL);
+  XSetStandardProperties(handle.display,handle.window,userFiles->head->name,"Name of icon pixmap",None,NULL,0,NULL);
   XSelectInput(handle.display,handle.window,ExposureMask|ButtonPressMask|ButtonReleaseMask|KeyPressMask|KeyReleaseMask);
   GC gc=XCreateGC(handle.display,handle.window,0,0);
   XClearWindow(handle.display,handle.window);
@@ -202,7 +202,6 @@ int openMainWindow(EFILEList *userFiles){
 
 int messageWindow(const char *message,const char *header,enum messageType type,WINDOW_HANDLE windowHandle){
   return FAILURE;
-
 }
 
 #endif

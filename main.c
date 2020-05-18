@@ -25,8 +25,8 @@ int main(int args,char *argv[]){
   //userFiles will be a continuously updated set of linked lists representing the files being worked on
   auto EFILEList userFiles=EMPTY_EFILE_LIST;
   register int c;
-  register EFILE *efile;
   for(c=1;c<args;++c){
+	register EFILE *efile;
 	if((efile=makeEFILE(argv[c]))){
 		//If file opens successfully add it to EFILE linked list
 		if(userFiles.head){
@@ -42,12 +42,10 @@ int main(int args,char *argv[]){
 		if(userFiles.errorTail){
 			userFiles.errorTail->next=malloc(sizeof(fileError));
 			userFiles.errorTail=userFiles.errorTail->next;
-			*userFiles.errorTail=(fileError){.next=NULL,.filename=argv[c]};
 		}
-		else{
+		else
 			userFiles.errorHead=userFiles.errorTail=malloc(sizeof(fileError));
-			*userFiles.errorHead=(fileError){.next=NULL,.filename=argv[c]};
-		}
+		*userFiles.errorTail=(fileError){.next=NULL,.filename=argv[c]};
 	}
   }
   if(!userFiles.head) //If no files successfully opened, create a dummy EFILE
@@ -56,5 +54,10 @@ int main(int args,char *argv[]){
   openMainWindow(&userFiles);
   printf("Control made it back to main\n");
   //When GUI is closed, clean up and exit
+  while(userFiles.errorHead){
+	fileError *hold=userFiles.errorHead->next;
+	free(userFiles.errorHead);
+	userFiles.errorHead=hold;
+  }
   freeEFILEList(&userFiles);
 }

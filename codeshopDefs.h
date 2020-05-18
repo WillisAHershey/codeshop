@@ -8,4 +8,7 @@
 #define SUCCESS 1
 #define FAILURE 0
 
+const static char windowClassName[] = "Codeshop coding environment";
+const static char defaultFileName[] = "<noname>.c";
+
 #endif

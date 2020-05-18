@@ -14,26 +14,48 @@ typedef struct lineNodeStruct{
 
 #define EMPTY_LINENODE_NO_LINE (lineNode){.next=NULL,.prev=NULL}
 
-enum editType{DELETION,INSERTION,LINEEDIT};
+enum edit{DELETION,INSERTION,LINE_EDIT};
 
 //EFILEs are abstract file representations containing linked lists of lines so that editing can take place without enourmous processing overhead
 //they also link together nicely to form a linked list of files being edited
 
-//this is a temporary hush-error
-#define editLog void
+typedef struct{
+  int index;
+  lineNode *start;
+  lineNode *end;
+}deletionLog;
+
+typedef struct{
+  int index;
+  int numLines;
+}insertionLog;
+
+typedef struct{
+  int index;
+  char oldLine[];
+}lineEditLog;
+
+typedef struct editLogStruct{
+  struct editLogStruct *next;
+  enum edit editType;
+  union{
+	deletionLog deletion;
+	insertionLog insertion;
+	lineEditLog lineEdit;
+  };
+}editLog;
 
 typedef struct EFILEStruct{
   struct EFILEStruct *next;
   struct EFILEStruct *prev;
   lineNode *head;
   lineNode *tail;
-  lineNode *cursor;
-  editLog *edits; //This will someday be a struct pointer
-  int numLines;
+  editLog *edits;
+  editLog *redo;
   char name[];
 }EFILE;
 
-#define EMPTY_EFILE_NO_NAME (EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.cursor=NULL,.edits=NULL,.numLines=0}
+#define EMPTY_EFILE_NO_NAME (EFILE){.next=NULL,.prev=NULL,.head=NULL,.tail=NULL,.edits=NULL,.redo=NULL}
 
 typedef struct fileErrorStruct{
   struct fileErrorStruct *next;
@@ -49,14 +71,15 @@ typedef struct{
 
 #define EMPTY_EFILE_LIST (EFILEList){.head=NULL,.tail=NULL,.errorHead=NULL,.errorTail=NULL}
 
-EFILE* makeEFILE(char*);
-EFILE* makeEmptyEFILE(char*);
+EFILE* makeEFILE(const char*);
+EFILE* makeEmptyEFILE(const char*);
 void freeEFILE(EFILE*);
 int writeEFILE(EFILE*);
 void freeEFILEList(EFILEList*);
 void removeEFILEListAndFree(EFILEList*,EFILE*);
 void printEFILE(EFILE*);
 int EFILEInsertLines(EFILE*,int,lineNode*,lineNode*);
-int EFILEDeleteLines(EFILE*,int,lineNode*);
+int EFILEDeleteLines(EFILE*,int,int);
+int renameEFILE(EFILEList*,EFILE*,const char*);
 
 #endif
